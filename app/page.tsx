@@ -4,13 +4,27 @@ import { useEffect, useState, useRef } from "react";
 import { SplineScene } from "@/components/SplineScene";
 import { Card } from "@/components/ui/card";
 import { scrollTo } from "@/lib/lenis";
-import { fadeScaleReveal, animateCounter, observeAndAnimate } from "@/lib/animations";
+import { 
+  fadeScaleReveal, 
+  animateCounter, 
+  observeAndAnimate,
+  magneticButton,
+  typewriterLoop,
+  DURATION
+} from "@/lib/animations";
 
 export default function Home() {
   useEffect(() => {
-    // Initialize scroll-triggered animations
+    // Initialize scroll-triggered animations with enhanced settings
     observeAndAnimate('.animate-on-scroll', (element) => {
-      fadeScaleReveal(element, { duration: 800 })
+      fadeScaleReveal(element, { 
+        duration: DURATION.content,
+        stagger: 60,
+        direction: 'up'
+      })
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
     })
   }, [])
 
@@ -38,6 +52,7 @@ export default function Home() {
 
 const Navigation = () => {
   const [scrolled, setScrolled] = useState(false);
+  const ctaRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,6 +61,18 @@ const Navigation = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (ctaRef.current) {
+      const cleanup = magneticButton(ctaRef.current, {
+        strength: 0.3,
+        radius: 80,
+        scale: 1.05,
+        glow: true
+      });
+      return cleanup;
+    }
   }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -57,10 +84,10 @@ const Navigation = () => {
     <nav
       role="navigation"
       aria-label="Navigation principale"
-      className={`sticky top-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "glass shadow-lg"
-          : "bg-white/60 backdrop-blur-md border-b border-transparent"
+          ? "glass-nav shadow-lg"
+          : "bg-white/40 backdrop-blur-md"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -73,18 +100,18 @@ const Navigation = () => {
             aria-label="Retour à l'accueil"
           >
             <div className="relative flex h-10 w-10 items-center justify-center">
-              <span className="absolute inset-0 rounded-xl bg-blue-500/20 blur-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              <div className="relative flex h-10 w-10 rotate-45 items-center justify-center rounded-2xl bg-neutral-900 transition-transform duration-500 group-hover:rotate-225">
-                <div className="h-4 w-4 -rotate-45 rounded-md bg-blue-500 transition-transform duration-500 group-hover:scale-110" />
+              <div className="relative flex h-10 w-10 rotate-45 items-center justify-center rounded-xl bg-neutral-900 transition-all duration-500 group-hover:rotate-[225deg] group-hover:scale-110">
+                <div className="h-4 w-4 -rotate-45 rounded-md bg-blue-gradient transition-transform duration-500 group-hover:scale-110" />
               </div>
+              <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
-            <span className="font-display text-2xl font-semibold text-neutral-900 tracking-tight">
+            <span className="font-display text-2xl font-semibold text-neutral-900 tracking-tight transition-colors duration-300 group-hover:text-blue-600">
               SaiTech
             </span>
           </a>
 
           {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-10 text-sm font-medium">
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium">
             {[
               { label: "Accueil", href: "#accueil" },
               { label: "Services", href: "#services" },
@@ -95,22 +122,30 @@ const Navigation = () => {
                 key={item.label}
                 href={item.href}
                 onClick={(e) => handleNavClick(e, item.href)}
-                className="group relative text-neutral-600 transition-colors duration-300 hover:text-neutral-900"
+                className="group relative py-2 text-neutral-600 transition-colors duration-300 hover:text-neutral-900"
               >
                 {item.label}
-                <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-blue-500 transition-all duration-220 ease-out group-hover:w-full" />
+                <div className="absolute inset-x-0 -bottom-1 h-0.5 bg-blue-gradient scale-x-0 origin-left transition-transform duration-300 ease-out group-hover:scale-x-100" />
               </a>
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* Elite CTA Button */}
           <a
+            ref={ctaRef}
             href="#contact"
             onClick={(e) => handleNavClick(e, "#contact")}
-            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-blue-gradient px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_18px_35px_rgba(96,165,250,0.35)] focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:ring-offset-2"
+            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-blue-gradient px-6 py-3 text-sm font-semibold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:ring-offset-2"
             aria-label="Contacter un expert"
+            style={{ willChange: 'transform' }}
           >
-            <span className="relative z-10">Parler à un expert</span>
+            <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">Planifier un atelier</span>
+            <div className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-45">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-200%] transition-transform duration-1000 group-hover:translate-x-[200%]" />
           </a>
         </div>
       </div>
@@ -119,66 +154,123 @@ const Navigation = () => {
 };
 
 const Hero = () => {
-  return (
-    <section className="relative pt-6 pb-20" id="accueil" aria-label="Section héro">
-      {/* Light gradient background */}
-      <div className="absolute inset-0 bg-linear-to-b from-[#EFF6FF] via-[#F5F7FB] to-transparent pointer-events-none" />
+  const ctaPrimaryRef = useRef<HTMLAnchorElement>(null);
+  const ctaSecondaryRef = useRef<HTMLAnchorElement>(null);
+  const typewriterRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    // Typewriter animation with Tron-style flash deletion
+    if (typewriterRef.current) {
+      const cleanup = typewriterLoop(typewriterRef.current, [
+        { text: 'Construisez intelligent.', highlight: 'intelligent' },
+        { text: 'Automatisez vite.', highlight: 'vite' }
+      ], {
+        typingSpeed: 100,
+        deletingSpeed: 25,
+        pauseDuration: 2500
+      });
       
-      <div className="relative max-w-7xl mx-auto px-6">
-        <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[600px] lg:min-h-[700px]">
-          {/* Left content */}
-          <div className="relative z-10 flex flex-col justify-center animate-on-scroll">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 mb-6 w-fit">
+      return cleanup;
+    }
+  }, []);
+
+  useEffect(() => {
+    // Magnetic buttons
+    if (ctaPrimaryRef.current) {
+      const cleanup1 = magneticButton(ctaPrimaryRef.current, {
+        strength: 0.4,
+        radius: 100,
+        scale: 1.05,
+        glow: true
+      });
+      
+      const cleanup2 = ctaSecondaryRef.current ? magneticButton(ctaSecondaryRef.current, {
+        strength: 0.3,
+        radius: 80,
+        scale: 1.02
+      }) : () => {};
+      
+      return () => {
+        cleanup1();
+        cleanup2();
+      };
+    }
+  }, []);
+
+  return (
+    <section 
+      className="relative min-h-screen flex items-center pt-24 pb-20" 
+      id="accueil" 
+      aria-label="Section héro"
+    >
+      {/* Simple atmospheric background */}
+      <div className="absolute inset-0 bg-hero-mesh" />
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/8 rounded-full blur-3xl" />
+      
+      <div className="relative max-w-7xl mx-auto px-6 w-full">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left content - Clean and focused */}
+          <div className="relative z-10 space-y-8">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 w-fit">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
               Intelligence accessible
             </div>
             
-            <h1 className="font-display heading-xl font-bold text-neutral-900 mb-6">
-              Construisez intelligent.
-              <br />
-              Automatisez vite.
-              <br />
-              <span className="text-blue-gradient">Transformez l&apos;Afrique.</span>
+            {/* Headline with typewriter */}
+            <h1 className="font-display heading-xl font-bold text-neutral-900 min-h-[8rem] flex items-center">
+              <span ref={typewriterRef} className="inline-block"></span>
             </h1>
             
-            <p className="body-lg text-neutral-600 max-w-xl mb-8">
-              Des systèmes intelligents et des outils d&apos;automatisation conçus pour les entreprises africaines. 
-              <span className="font-semibold text-neutral-900"> Standards mondiaux. Excellence locale.</span>
+            {/* Description */}
+            <p className="body-lg text-neutral-600 max-w-xl">
+              Des systèmes intelligents et des outils d&apos;automatisation conçus pour les entreprises africaines.
+              <span className="block mt-2 font-semibold text-neutral-900">Standards mondiaux. Excellence locale.</span>
             </p>
 
-            <div className="flex flex-wrap gap-4 mb-12">
+            {/* CTAs */}
+            <div className="flex flex-wrap gap-4">
               <a
+                ref={ctaPrimaryRef}
                 href="#contact"
-                className="inline-flex items-center gap-2 bg-blue-gradient text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105 hover:shadow-[0_24px_45px_rgba(96,165,250,0.35)] focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:ring-offset-2"
+                className="group relative inline-flex items-center gap-2 bg-blue-gradient text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:ring-offset-2 overflow-hidden"
+                style={{ willChange: 'transform' }}
               >
-                Démarrer un projet
+                <span className="relative z-10">Démarrer un projet</span>
+                <div className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 group-hover:rotate-45">
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-200%] transition-transform duration-1000 group-hover:translate-x-[200%]" />
               </a>
+              
               <a
+                ref={ctaSecondaryRef}
                 href="#services"
-                className="inline-flex items-center gap-2 border-2 border-neutral-300 hover:border-blue-500 text-neutral-900 hover:text-blue-600 px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:bg-blue-50"
+                className="group inline-flex items-center gap-2 glass border-2 border-blue-500/20 hover:border-blue-500/40 text-neutral-900 hover:text-blue-600 px-8 py-4 rounded-full font-semibold transition-all duration-300"
+                style={{ willChange: 'transform' }}
               >
-                Nos services
+                <span>Nos services</span>
+                <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </a>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
-              <span className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                Fintech
-              </span>
-              <span className="h-px w-8 bg-neutral-300" />
-              <span>Éducation</span>
-              <span className="h-px w-8 bg-neutral-300" />
-              <span>Télécoms</span>
             </div>
           </div>
 
           {/* Right content - 3D Scene */}
-          <div className="relative h-[400px] lg:h-[700px] animate-on-scroll">
-            {/* Subtle glow effect */}
+          <div className="relative h-[500px] lg:h-[700px]">
+            {/* Subtle glow */}
             <div className="absolute inset-0 bg-blue-500/5 rounded-3xl blur-3xl" />
-            <div className="relative h-full" style={{ filter: 'drop-shadow(0 0 32px rgba(96, 165, 250, 0.15))' }}>
+            
+            {/* Spline scene */}
+            <div 
+              className="relative h-full" 
+              style={{ 
+                filter: 'drop-shadow(0 0 40px rgba(37, 99, 235, 0.12))'
+              }}
+            >
               <SplineScene 
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
