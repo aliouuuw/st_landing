@@ -23,7 +23,12 @@ export function MagneticButton({
   useEffect(() => {
     if (!buttonRef.current) return
     
-    const cleanup = magneticButton(buttonRef.current as HTMLElement, strength)
+    const cleanup = magneticButton(buttonRef.current as HTMLElement, {
+      strength: strength,
+      radius: 80,
+      scale: 1.05,
+      glow: true
+    })
     
     return cleanup
   }, [strength])
